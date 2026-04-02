@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leitor QR Code</title>
+
+<script src="https://unpkg.com/html5-qrcode"></script>
+
+<style>
+body{
+  font-family: Arial;
+  background: linear-gradient(135deg, #1e3a5f, #2a4d69);
+  color: white;
+  text-align: center;
+  padding: 20px;
+}
+
+#reader{
+  width: 100%;
+  max-width: 300px;
+  margin: auto;
+}
+
+#status{
+  margin-top: 20px;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.barra-container{
+  width: 100%;
+  max-width: 300px;
+  height: 10px;
+  background: #ccc;
+  margin: 10px auto;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+#barra{
+  height: 100%;
+  width: 0%;
+  transition: 0.3s;
+}
+
+button{
+  width: 100%;
+  max-width: 300px;
+  padding: 12px;
+  margin-top: 20px;
+  background: #1f4d2e;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+}
+</style>
+</head>
+
+<body>
+
+<h2>Leitor QR Code</h2>
+
+<div id="reader"></div>
+
+<div id="status">Aguardando leitura...</div>
+
+<div class="barra-container">
+  <div id="barra"></div>
+</div>
+
+<button onclick="window.location.href='index.html'">Voltar</button>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+import { getFirestore, collection, addDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCGA7zSIJUjwt4Auw9-R2V-SIUc6476zww",
+  authDomain: "merenda-escolar-2.firebaseapp.com",
+  projectId: "merenda-escolar-2",
+  storageBucket: "merenda-escolar-2.appspot.com",
+  messagingSenderId: "608430650860",
+  appId: "1:608430650860:web:eb8dd66b5cf96615c83cc9"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+let escolaId = localStorage.getItem("escola");
+
+let bloqueado = false;
+let ultimoCodigo = "";
+
+const status = document.getElementById("status");
+const barra = document.getElementById("barra");
+
+function beep(){
+  const audio = new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg");
+  audio.play();
+}
+
+async function processarCodigo(codigo){
+
+  if(bloqueado || codigo === ultimoCodigo) return;
+
+  bloqueado = true;
+  ultimoCodigo = codigo;
+
+  const hoje = new Date().toLocaleDateString("pt-BR");
+
+  // verificar duplicado
+  const q = query(
+    collection(db, "escolas", escolaId, "registros"),
+    where("codigo", "==", codigo),
+    where("data", "==", hoje)
+  );
+
+  const snap = await getDocs(q);
+
+  if(!snap.empty){
+    mostrarErro("Aluno já registrado");
+    liberar();
+    return;
+  }
+
+  // buscar aluno
+  const alunosSnap = await getDocs(collection(db, "escolas", escolaId, "alunos"));
+  let aluno = null;
+
+  alunosSnap.forEach(doc => {
+    if(doc.data().codigo == codigo){
+      aluno = doc.data();
+    }
+  });
+
+  if(!aluno){
+    mostrarErro("Aluno não encontrado");
+    liberar();
+    return;
+  }
+
+  // salvar registro
+  await addDoc(collection(db, "escolas", escolaId, "registros"), {
+  nome: aluno.nome,
+  codigo: codigo,
+  data: hoje,
+  hora: new Date().toLocaleTimeString("pt-BR")
+});
+
+  beep();
+  mostrarSucesso("Leitura realizada");
+  liberar();
+}
+
+function mostrarSucesso(msg){
+  status.innerText = msg;
+  barra.style.background = "green";
+  barra.style.width = "100%";
+}
+
+function mostrarErro(msg){
+  status.innerText = msg;
+  barra.style.background = "red";
+  barra.style.width = "100%";
+}
+
+function liberar(){
+  setTimeout(()=>{
+    status.innerText = "Aguardando leitura...";
+    barra.style.width = "0%";
+    bloqueado = false;
+  },3000);
+}
+
+// iniciar câmera traseira
+const html5QrCode = new Html5Qrcode("reader");
+
+Html5Qrcode.getCameras().then(devices => {
+  if(devices && devices.length){
+    const camera = devices.find(d => d.label.toLowerCase().includes("back")) || devices[0];
+
+    html5QrCode.start(
+      camera.id,
+      { fps: 10, qrbox: 250 },
+      (decodedText) => {
+        processarCodigo(decodedText);
+      }
+    );
+  }
+});
+</script>
+
+</body>
+</html>

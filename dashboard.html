@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Dashboard</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCGA7zSI9Ujwt4Auw9-R2V-SlUc6476zww",
+  authDomain: "merenda-escolar-2.firebaseapp.com",
+  projectId: "merenda-escolar-2",
+  storageBucket: "merenda-escolar-2.appspot.com",
+  messagingSenderId: "608430650860",
+  appId: "1:608430650860:web:eb8dd66b5cf96615c83cc9"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const escolaId = localStorage.getItem("escola");
+  
+let registros = [];
+let alunosMap = {};
+
+let graficoDia;
+let graficoTurma;
+
+onSnapshot(collection(db, "escolas", escolaId, "alunos"), (snap) => {
+  alunosMap = {};
+  snap.forEach(doc => {
+    const d = doc.data();
+    alunosMap[String(d.codigo)] = d.turma || "Sem turma";
+  });
+});
+
+onSnapshot(collection(db, "escolas", escolaId, "registros"), (snapshot) => {
+  registros = [];
+
+  snapshot.forEach(doc => {
+    const d = doc.data();
+
+    registros.push({
+      data: d.data || "",
+      turma: alunosMap[String(d.codigo)] || "Sem turma"
+    });
+  });
+
+  gerarDashboard();
+});
+
+function gerarDashboard(){
+
+  const porDia = {};
+  const porTurma = {};
+
+  registros.forEach(r => {
+
+    porDia[r.data] = (porDia[r.data] || 0) + 1;
+    porTurma[r.turma] = (porTurma[r.turma] || 0) + 1;
+
+  });
+
+  // ===== GRÁFICO POR DIA =====
+  const ctx1 = document.getElementById("graficoDia");
+
+  if(graficoDia){
+    graficoDia.destroy();
+  }
+
+  graficoDia = new Chart(ctx1, {
+    type: "bar",
+    data: {
+      labels: Object.keys(porDia),
+      datasets: [{
+        label: "Alunos por dia",
+        data: Object.values(porDia)
+      }]
+    }
+  });
+
+  // ===== GRÁFICO POR TURMA =====
+  const ctx2 = document.getElementById("graficoTurma");
+
+  if(graficoTurma){
+    graficoTurma.destroy();
+  }
+
+  graficoTurma = new Chart(ctx2, {
+    type: "pie",
+    data: {
+      labels: Object.keys(porTurma),
+      datasets: [{
+        label: "Alunos por turma",
+        data: Object.values(porTurma)
+      }]
+    }
+  });
+
+  // ===== RANKING =====
+  const ranking = document.getElementById("ranking");
+  ranking.innerHTML = "";
+
+  const ordenado = Object.entries(porTurma)
+    .sort((a, b) => b[1] - a[1]);
+
+  ordenado.forEach(([turma, qtd]) => {
+    const div = document.createElement("div");
+    div.className = "item";
+    div.innerText = turma + ": " + qtd + (qtd == 1 ? " aluno" : " alunos");
+    ranking.appendChild(div);
+  });
+
+}
+</script>
+
+<style>
+body{
+  font-family: Arial;
+  background:#2f4a6d;
+  text-align:center;
+  color:white;
+}
+
+.box{
+  background:white;
+  color:black;
+  padding:20px;
+  border-radius:10px;
+  width:320px;
+  margin:30px auto;
+}
+
+.item{
+  border-bottom:1px solid #ccc;
+  padding:8px;
+}
+
+canvas{
+  margin-top:20px;
+}
+
+button{
+  width:100%;
+  padding:10px;
+  background:green;
+  color:white;
+  border:none;
+  border-radius:5px;
+  margin-top:15px;
+}
+</style>
+
+</head>
+
+<body>
+
+<h1>S.C.A.E</h1>
+<p>Dashboard</p>
+
+<div class="box">
+
+  <h3>Alunos por dia</h3>
+  <canvas id="graficoDia"></canvas>
+
+  <h3>Alunos por turma</h3>
+  <canvas id="graficoTurma"></canvas>
+
+  <h3>Ranking de turmas</h3>
+  <div id="ranking"></div>
+
+  <button onclick="history.back()">Voltar</button>
+
+</div>
+
+</body>
+</html>

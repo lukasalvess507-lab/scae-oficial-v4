@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Painel - Merenda Escolar</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial;
+    background: linear-gradient(135deg, #0f5132, #198754);
+    color: white;
+}
+
+.container {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+h1 {
+    margin-bottom: 30px;
+}
+
+.card {
+    background: white;
+    color: #333;
+    border-radius: 12px;
+    padding: 20px;
+    max-width: 400px;
+    margin: auto;
+}
+
+button {
+    width: 100%;
+    padding: 15px;
+    margin: 10px 0;
+    border: none;
+    border-radius: 8px;
+    background: #198754;
+    color: white;
+    font-size: 16px;
+}
+
+button:hover {
+    background: #146c43;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>Painel Merenda Escolar</h1>
+
+<div class="card">
+
+<button onclick="abrirLeitor()">Ler QR Code</button>
+
+<button onclick="cadastrarAluno()">Cadastrar Aluno</button>
+
+<button onclick="verAlunos()">Ver Alunos</button>
+
+<button onclick="verRegistros()">Registros do Dia</button>
+
+<button onclick="verHistorico()">Histórico</button>
+
+</div>
+
+</div>
+
+<script>
+
+function abrirLeitor() {
+    window.location.href = "leitor.html";
+}
+
+function cadastrarAluno() {
+    alert("Cadastro em construção");
+}
+
+function verAlunos() {
+    alert("Lista em construção");
+}
+
+function verRegistros() {
+    alert("Registros em construção");
+}
+
+function verHistorico() {
+  window.location.href = "historico.html";
+}
+
+</script>
+
+</body>
+</html>

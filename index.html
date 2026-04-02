@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>S.C.A.E</title>
+
+<style>
+
+body{
+    font-family: Arial;
+    margin:0;
+    background: linear-gradient(135deg, #1e3a5f, #2a4d69);
+    color:white;
+    text-align:center;
+}
+
+.topo{
+    display:flex;
+    justify-content:space-between;
+    padding:10px 20px;
+}
+
+.escola{
+    font-size:18px;
+    font-weight:bold;
+    background: rgba(255,255,255,0.15);
+    padding:6px 12px;
+    border-radius:8px;
+}
+
+.sair{
+    background:#ff4d4d;
+    color:white;
+    padding:6px 14px;
+    border-radius:8px;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+.container{
+    background:white;
+    color:black;
+    padding:20px;
+    border-radius:12px;
+    max-width:350px;
+    margin:20px auto;
+}
+
+button{
+    width:100%;
+    padding:14px;
+    margin:8px 0;
+    background:#1f4d2e;
+    color:white;
+    border:none;
+    border-radius:10px;
+    font-size:16px;
+    cursor:pointer;
+    transition:0.3s;
+}
+
+button:hover{
+    background:#2e6b45;
+    transform:scale(1.05);
+}
+
+
+
+/* ANIMAÇÃO */
+.container{
+    animation:fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn{
+    from{
+        opacity:0;
+        transform:translateY(20px);
+    }
+    to{
+        opacity:1;
+        transform:translateY(0);
+    }
+}
+    
+</style>
+</head>
+
+<body>
+
+<div class="topo">
+    <div class="escola" id="nomeEscola">Escola</div>
+    <div class="sair" onclick="sair()">Sair</div>
+</div>
+
+<h1>S.C.A.E</h1>
+<p>Sistema de Controle de Almoço Escolar</p>
+
+<div class="container">
+
+<button onclick="ir('dashboard.html')">Dashboard</button>
+<button onclick="ir('importar.html')">Importar Alunos</button>
+<button onclick="ir('leitor.html')">Ler QR Code</button>
+<button onclick="ir('cadastro.html')">Cadastrar Aluno</button>
+<button onclick="ir('alunos.html')">Ver Alunos</button>
+<button onclick="ir('registros.html')">Resumo do Dia</button>
+<button onclick="ir('historico.html')">Histórico</button>
+<button onclick="ir('qrcode.html')">Gerar QR Code</button>
+
+</div>
+
+
+<script>
+
+
+if(!localStorage.getItem("email")){
+    window.location.href = "login.html";
+}
+
+function sair(){
+    localStorage.removeItem("email"); // só desloga
+
+    window.location.href = "login.html";
+}
+
+function ir(pagina){
+    window.location.href = pagina;
+}
+
+  const escola = localStorage.getItem("escola");
+
+if(escola){
+    document.getElementById("nomeEscola").innerText = escola;
+}  
+</script>
+</body>
+</html>

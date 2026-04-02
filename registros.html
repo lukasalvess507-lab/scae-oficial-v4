@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Resumo do Dia</title>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCGA7zSI9Ujwt4Auw9-R2V-SlUc6476zww",
+  authDomain: "merenda-escolar-2.firebaseapp.com",
+  projectId: "merenda-escolar-2",
+  storageBucket: "merenda-escolar-2.appspot.com",
+  messagingSenderId: "608430650860",
+  appId: "1:608430650860:web:eb8dd66b5cf96615c83cc9"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const escolaId = localStorage.getItem("escola");
+  
+let registros = [];
+let alunosMap = {};
+
+const lista = document.getElementById("lista");
+const total = document.getElementById("total");
+const filtro = document.getElementById("filtroTurma");
+
+onSnapshot(collection(db, "escolas", escolaId, "alunos"), (snap) => {
+  alunosMap = {};
+  snap.forEach(doc => {
+    const d = doc.data();
+    alunosMap[String(d.codigo)] = d.turma || "Sem turma";
+  });
+});
+
+onSnapshot(collection(db, "escolas", escolaId, "registros"), (snapshot) => {
+  registros = [];
+
+  snapshot.forEach(doc => {
+    const d = doc.data();
+
+    registros.push({
+      nome: d.nome || "",
+      codigo: String(d.codigo || ""),
+      turma: alunosMap[String(d.codigo)] || "Sem turma",
+      data: d.data || "",
+      hora: d.hora || ""
+    });
+  });
+
+  montarFiltro();
+  renderizar();
+});
+
+function montarFiltro(){
+  const turmas = new Set();
+
+  registros.forEach(r => turmas.add(r.turma));
+
+  filtro.innerHTML = '<option value="todas">Todas as turmas</option>';
+
+  turmas.forEach(t => {
+    filtro.innerHTML += `<option value="${t}">${t}</option>`;
+  });
+}
+
+function renderizar(){
+  lista.innerHTML = "";
+  const turmaSelecionada = filtro.value;
+  let contador = 0;
+
+  registros.forEach(r => {
+
+    if (turmaSelecionada !== "todas" && r.turma !== turmaSelecionada) return;
+
+    contador++;
+
+    const div = document.createElement("div");
+    div.className = "item";
+
+    div.innerHTML =
+      r.nome +
+      "<br><small>" + r.turma + "</small>" +
+      "<br><small>" + r.data + " " + (r.hora || "") + "</small>";
+
+    lista.appendChild(div);
+  });
+
+  total.innerText = "Total: " + contador + " alunos";
+}
+
+window.addEventListener("load", () => {
+  filtro.addEventListener("change", renderizar);
+});
+</script>
+
+<style>
+body{
+  font-family: Arial;
+  background:#2f4a6d;
+  text-align:center;
+  color:white;
+}
+.box{
+  background:white;
+  color:black;
+  padding:20px;
+  border-radius:10px;
+  width:300px;
+  margin:50px auto;
+}
+.item{
+  border-bottom:1px solid #ccc;
+  padding:10px;
+}
+select{
+  width:100%;
+  padding:8px;
+  margin-bottom:10px;
+}
+button{
+  width:100%;
+  padding:10px;
+  background:green;
+  color:white;
+  border:none;
+  border-radius:5px;
+}
+</style>
+
+</head>
+
+<body>
+
+<h1>S.C.A.E</h1>
+<p>Resumo do Dia</p>
+
+<div class="box">
+  <select id="filtroTurma"></select>
+  <h3 id="total"></h3>
+  <div id="lista"></div>
+  <br>
+  <button onclick="history.back()">Voltar</button>
+</div>
+
+</body>
+</html>

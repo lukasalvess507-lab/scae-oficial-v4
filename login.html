@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Login - S.C.A.E</title>
+
+<style>
+body{
+    font-family: Arial;
+    margin:0;
+    background: linear-gradient(135deg, #1e3a5f, #2a4d69);
+    color:white;
+    text-align:center;
+}
+
+.container{
+    background:white;
+    color:black;
+    padding:25px;
+    border-radius:12px;
+    max-width:350px;
+    margin:80px auto;
+}
+
+input{
+    width:100%;
+    padding:12px;
+    margin:8px 0;
+    border-radius:8px;
+    border:1px solid #ccc;
+    box-sizing: border-box;
+}
+
+button{
+    width:100%;
+    padding:14px;
+    margin:8px 0;
+    background:#1f4d2e;
+    color:white;
+    border:none;
+    border-radius:10px;
+    font-size:16px;
+    cursor:pointer;
+}
+.logo{
+    width: 120px;
+    margin-bottom: 10px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <img src="logo.png" class="logo">
+
+    <h1>S.C.A.E</h1>
+    <p class="subtitulo">Sistema de Controle de Almoço Escolar</p>
+
+    <input type="text" id="escola" placeholder="Nome da Escola">
+    <input type="email" id="email" placeholder="E-mail">
+    <input type="password" id="senha" placeholder="Senha">
+
+    <button onclick="entrar()">Entrar</button>
+    <button onclick="cadastrar()" class="secundario">Criar conta</button>
+    <p onclick="resetar()" style="cursor:pointer; font-size:12px; margin-top:6px; color:#888;">
+   Esqueci minha senha
+</p>
+
+    <p id="msg"></p>
+
+</div>
+
+<script>
+
+function cadastrar(){
+    const escola = document.getElementById("escola").value
+  .trim()
+  .toLowerCase()
+  .replace(/\s+/g, "_");
+    const email = document.getElementById("email").value.trim();
+    const senha = document.getElementById("senha").value.trim();
+
+    if(!escola || !email || !senha){
+        msg("Preencha tudo!");
+        return;
+    }
+
+    let usuarios = JSON.parse(localStorage.getItem("usuarios")) || [];
+
+    let existe = usuarios.find(u => u.email === email);
+
+    if(existe){
+        msg("Já existe uma conta com esse e-mail!");
+        return;
+    }
+
+    const novoUsuario = {
+        escola: escola,
+        email: email,
+        senha: senha
+    };
+
+    usuarios.push(novoUsuario);
+
+    localStorage.setItem("usuarios", JSON.stringify(usuarios));
+
+    msg("Conta criada com sucesso!");
+}
+
+function entrar(){
+    const email = document.getElementById("email").value.trim();
+    const senha = document.getElementById("senha").value.trim();
+
+    let usuarios = JSON.parse(localStorage.getItem("usuarios")) || [];
+
+    let usuario = usuarios.find(u => u.email === email && u.senha === senha);
+
+    if(usuario){
+        localStorage.setItem("email", usuario.email);
+        localStorage.setItem("escola", usuario.escola);
+
+        window.location.href = "index.html";
+    } else {
+        msg("Logi inválido!");
+    }
+}
+    
+function msg(texto){
+    document.getElementById("msg").innerText = texto;
+}
+
+  function resetar(){
+    if(confirm("Deseja resetar o acesso? Você poderá criar a conta novamente.")){
+        localStorage.clear();
+        alert("Acesso resetado. Agora crie a conta novamente.");
+        location.reload();
+    }
+}  
+    
+</script>
+
+</body>
+</html>

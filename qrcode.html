@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gerar QR Code</title>
+
+<style>
+body{
+    font-family: Arial;
+    background: linear-gradient(135deg, #1e3a5f, #2a4d69);
+    color:white;
+    text-align:center;
+    padding:20px;
+}
+
+.container{
+    background:white;
+    color:black;
+    padding:20px;
+    border-radius:12px;
+    max-width:350px;
+    margin:auto;
+}
+
+input{
+    width:90%;
+    padding:10px;
+    margin:10px;
+    border-radius:8px;
+    border:1px solid #ccc;
+}
+
+button{
+    width:100%;
+    padding:12px;
+    margin-top:10px;
+    background:#1f4d2e;
+    color:white;
+    border:none;
+    border-radius:8px;
+}
+
+#areaQR{
+    margin-top:15px;
+    background:white;
+    padding:10px;
+    border-radius:10px;
+}
+
+#codigoTexto{
+    margin-top:5px;
+    font-weight:bold;
+}
+
+</style>
+</head>
+
+<body>
+
+<h2>S.C.A.E</h2>
+<p>Gerar QR Code</p>
+
+<div class="container">
+
+<input id="codigo" placeholder="Digite o código do aluno">
+
+<button onclick="gerar()">Gerar QR Code</button>
+
+<div id="areaQR">
+<canvas id="canvas"></canvas>
+<div id="codigoTexto"></div>
+</div>
+
+<button onclick="baixar()">Baixar QR Code</button>
+
+</div>
+
+<button onclick="window.location.href='index.html'">Voltar</button>
+
+<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+
+<script>
+
+let canvas = document.getElementById("canvas");
+let codigoAtual = "";
+
+function gerar(){
+
+    const codigo = document.getElementById("codigo").value;
+
+    if(!codigo){
+        alert("Digite o código");
+        return;
+    }
+
+    codigoAtual = codigo;
+
+    QRCode.toCanvas(canvas, codigo, {
+        width: 250,
+        margin: 2
+    });
+
+    document.getElementById("codigoTexto").innerText = "Código: " + codigo;
+
+}
+
+function baixar(){
+
+    if(!codigoAtual){
+        alert("Gere um QR Code primeiro");
+        return;
+    }
+
+    const area = document.getElementById("areaQR");
+
+    html2canvas(area).then(canvasFinal => {
+
+        const link = document.createElement("a");
+        link.download = "QR_" + codigoAtual + ".png";
+        link.href = canvasFinal.toDataURL();
+        link.click();
+
+    });
+
+}
+
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+</body>
+</html>

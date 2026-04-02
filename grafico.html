@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Gráfico</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+body{
+    font-family: Arial;
+    background:#f5f5f5;
+    text-align:center;
+}
+
+.container{
+    background:white;
+    padding:20px;
+    border-radius:12px;
+    max-width:400px;
+    margin:40px auto;
+}
+
+button{
+    width:100%;
+    padding:12px;
+    margin-top:10px;
+    background:#1f4d2e;
+    color:white;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h3>Gráfico por Turma</h3>
+
+<canvas id="grafico"></canvas>
+
+<button onclick="voltar()">Voltar</button>
+
+</div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCGA7zSI9Ujwt4Auw9-R2V-SlUc6476zww",
+  authDomain: "merenda-escolar-2.firebaseapp.com",
+  projectId: "merenda-escolar-2",
+  storageBucket: "merenda-escolar-2.appspot.com",
+  messagingSenderId: "608430650860",
+  appId: "1:608430650860:web:eb8dd66b5cf96615c83cc9"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const escolaId = localStorage.getItem("escolaId");
+
+async function carregarGrafico(){
+
+    const snapshot = await getDocs(collection(db, "escolas", escolaId, "alunos"));
+
+    const turmas = {};
+
+    snapshot.forEach(doc => {
+        const aluno = doc.data();
+
+        if(turmas[aluno.turma]){
+            turmas[aluno.turma]++;
+        } else {
+            turmas[aluno.turma] = 1;
+        }
+    });
+
+    const labels = Object.keys(turmas);
+    const valores = Object.values(turmas);
+
+    new Chart(document.getElementById("grafico"), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Quantidade de alunos',
+                data: valores
+            }]
+        },
+        options: {
+            responsive: true
+        }
+    });
+
+}
+
+carregarGrafico();
+
+window.voltar = function(){
+    window.location.href = "index.html";
+}
+
+</script>
+
+</body>
+</html>

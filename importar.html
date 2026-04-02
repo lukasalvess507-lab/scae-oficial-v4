@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Importar Alunos</title>
+
+<style>
+body{
+    font-family: Arial;
+    background: linear-gradient(135deg, #1e3a5f, #2a4d69);
+    color:white;
+    text-align:center;
+    padding:20px;
+}
+
+.container{
+    background:white;
+    padding:25px;
+    border-radius:15px;
+    max-width:350px;
+    margin:auto;
+    box-shadow:0 5px 15px rgba(0,0,0,0.2);
+}
+
+input[type="file"]{
+    margin-bottom:15px;
+}
+
+button{
+    width:100%;
+    padding:14px;
+    margin-top:10px;
+    background:#1f4d2e;
+    color:white;
+    border:none;
+    border-radius:10px;
+    font-size:16px;
+    transition:0.2s;
+}
+
+button:active{
+    transform:scale(0.97);
+    background:#163822;
+}
+</style>
+</head>
+
+<body>
+
+<h2>S.C.A.E</h2>
+<p>Importar Alunos</p>
+
+<div class="container">
+
+<input type="file" id="arquivo">
+
+<button onclick="importar()">Importar</button>
+
+<button onclick="window.location.href='index.html'">Voltar</button>
+
+</div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCGA7zSI9Ujwt4Auw9-R2V-SlUc6476zww",
+  authDomain: "merenda-escolar-2.firebaseapp.com",
+  projectId: "merenda-escolar-2",
+  storageBucket: "merenda-escolar-2.firebasestorage.app",
+  messagingSenderId: "608430650860",
+  appId: "1:608430650860:web:eb8dd66b5cf96615c83cc9"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+window.importar = function(){
+
+    const file = document.getElementById("arquivo").files[0];
+
+    if(!file){
+        alert("Selecione um arquivo");
+        return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = async function(e){
+
+        const linhas = e.target.result.split("\n");
+
+        for(let linha of linhas){
+
+            const partes = linha.split(",");
+
+            const codigo = partes[0]?.trim();
+            const nome = partes[1]?.trim();
+
+            if(codigo && nome){
+                await addDoc(collection(db, "alunos"), {
+                    codigo: codigo,
+                    nome: nome
+                });
+            }
+
+        }
+
+        alert("Importação concluída");
+
+    };
+
+    reader.readAsText(file);
+
+}
+
+</script>
+
+</body>
+</html>
