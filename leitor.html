@@ -181,23 +181,28 @@ function liberar(){
 // iniciar câmera traseira
 const html5QrCode = new Html5Qrcode("reader");
 
-html5Qrcode.getCameras().then(devices => {
-    if (devices && devices.length) {
+Html5Qrcode.getCameras()
+.then(devices => {
 
-        const cameraId = devices[0].id;
+    console.log("Câmeras:", devices);
 
-        html5QrCode.start(
-            cameraId,
-            { fps: 10, qrbox: 250 },
-            (decodedText) => {
-                console.log("LIDO:", decodedText);
-                processarCodigo(decodedText);
-            }
-        );
-
+    if (!devices || devices.length === 0) {
+        alert("Nenhuma câmera encontrada");
+        return;
     }
-}).catch(err => {
-    console.error("ERRO CAMERA:", err);
+
+    html5QrCode.start(
+        devices[0].id,
+        { fps: 10, qrbox: 250 },
+        (decodedText) => {
+            processarCodigo(decodedText);
+        }
+    );
+
+})
+.catch(err => {
+    alert("Erro na câmera: " + err);
+    console.error(err);
 });
 </script>
 
