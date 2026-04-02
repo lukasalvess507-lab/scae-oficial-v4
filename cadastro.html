@@ -74,28 +74,35 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-let escolaId = localStorage.getItem("email");
+window.salvar = async function() {
 
-window.salvar = async function(){
+  let escolaId = localStorage.getItem("escola");
 
-    const codigo = document.getElementById("codigo").value;
-    const nome = document.getElementById("nome").value;
-    const turma = document.getElementById("turma").value;
-
-if(!codigo || !nome || !turma){
-  document.getElementById("msg").innerText = "Preencha todos os campos!";
-  return;
-}    
-await addDoc(
-  collection(db, "escolas", escolaId, "alunos"),
-  {
-    escola: escolaId,
-    codigo: codigo,
-    nome: nome,
-    turma: turma
+  if (!escolaId) {
+    alert("Erro: escola não identificada. Faça login novamente.");
+    return;
   }
-);
-    document.getElementById("msg").innerText = "Aluno cadastrado com sucesso";
+
+  const codigo = document.getElementById("codigo").value;
+  const nome = document.getElementById("nome").value;
+  const turma = document.getElementById("turma").value;
+
+  if (!codigo || !nome || !turma) {
+    document.getElementById("msg").innerText = "Preencha todos os campos!";
+    return;
+  }
+
+  await addDoc(
+    collection(db, "escolas", escolaId, "alunos"),
+    {
+      escola: escolaId,
+      codigo: codigo,
+      nome: nome,
+      turma: turma
+    }
+  );
+
+  document.getElementById("msg").innerText = "Aluno cadastrado com sucesso";
 
     document.getElementById("codigo").value = "";
     document.getElementById("nome").value = "";
