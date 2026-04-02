@@ -73,42 +73,50 @@ button{
     <p id="msg"></p>
 
 </div>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+  import { getFirestore, collection, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
+  const firebaseConfig = {
+    apiKey: "AIzaSyD8ibst0QRuzqlfi4fiXZ4kt7h13SV-y24",
+    authDomain: "scae-sistema.firebaseapp.com",
+    projectId: "scae-sistema",
+    storageBucket: "scae-sistema.appspot.com",
+    messagingSenderId: "448013604838",
+    appId: "1:448013604838:web:524511ee6c17ddfa0fe827",
+    measurementId: "G-WM87K81S8K"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  window.db = db;
+  window.collection = collection;
+  window.getDocs = getDocs;
+</script>
 <script>
 
-function cadastrar(){
-    const escola = document.getElementById("escola").value
-  .trim()
-  .toLowerCase()
-  .replace(/\s+/g, "_");
-    const email = document.getElementById("email").value.trim();
-    const senha = document.getElementById("senha").value.trim();
+ async function cadastrar(){
+  const escola = document.getElementById("escola").value
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "_");
 
-    if(!escola || !email || !senha){
-        msg("Preencha tudo!");
-        return;
-    }
+  const email = document.getElementById("email").value.trim();
+  const senha = document.getElementById("senha").value.trim();
 
-    let usuarios = JSON.parse(localStorage.getItem("usuarios")) || [];
+  if(!escola || !email || !senha){
+    msg("Preencha tudo!");
+    return;
+  }
 
-    let existe = usuarios.find(u => u.email === email);
+  await addDoc(collection(db, "escolas"), {
+    escola: escola,
+    email: email,
+    senha: senha
+  });
 
-    if(existe){
-        msg("Já existe uma conta com esse e-mail!");
-        return;
-    }
-
-    const novoUsuario = {
-        escola: escola,
-        email: email,
-        senha: senha
-    };
-
-    usuarios.push(novoUsuario);
-
-    localStorage.setItem("usuarios", JSON.stringify(usuarios));
-
-    msg("Conta criada com sucesso!");
+  msg("Conta criada com sucesso!");
 }
 
 async function entrar(){
@@ -124,12 +132,10 @@ async function entrar(){
     querySnapshot.forEach((doc) => {
       const data = doc.data();
 
-      if (
-        data.email.trim() === email.trim() &&
-        data.senha.trim() === senha.trim()
-      ) {
-        usuario = data;
-      }
+      if (data.email.toLowerCase().trim() === email.toLowerCase().trim() &&
+    data.senha.trim() === senha.trim()) {
+  usuario = data;
+}
     });
 
     if(usuario){
@@ -158,27 +164,6 @@ function msg(texto){
     }
 }  
     
-</script>
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-  import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyD8ibst0QRuzqlfi4fiXZ4kt7h13SV-y24",
-    authDomain: "scae-sistema.firebaseapp.com",
-    projectId: "scae-sistema",
-    storageBucket: "scae-sistema.appspot.com",
-    messagingSenderId: "448013604838",
-    appId: "1:448013604838:web:524511ee6c17ddfa0fe827",
-    measurementId: "G-WM87K81S8K"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-
-  window.db = db;
-  window.collection = collection;
-  window.getDocs = getDocs;
 </script>
 </body>
 </html>
