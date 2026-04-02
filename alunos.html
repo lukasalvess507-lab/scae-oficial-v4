@@ -120,12 +120,14 @@ async function carregar(){
     todosAlunos = [];
 
     snapshot.forEach(docSnap => {
-        const aluno = docSnap.data();
-        aluno.id = docSnap.id;
+  const aluno = docSnap.data();
+  aluno.id = docSnap.id;
 
-        todosAlunos.push(aluno);
-        turmasSet.add(aluno.turma);
-    });
+  if (aluno.escola === escolaId) {
+    todosAlunos.push(aluno);
+    turmasSet.add(aluno.turma);
+  }
+});
 
     const select = document.getElementById("filtroTurma");
     select.innerHTML = '<option value="todas">Todas as turmas</option>';
