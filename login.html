@@ -122,9 +122,12 @@ const querySnapshot = await getDocs(collection(db, "escolas"));
 querySnapshot.forEach((doc) => {
   const data = doc.data();
 
-  if (data.email === email && data.senha === senha) {
-    usuario = data;
-  }
+  if (
+  data.email.trim() === email.trim() &&
+  data.senha.trim() === senha.trim()
+) {
+  usuario = data;
+}
 });
 
     if(usuario){
