@@ -113,7 +113,7 @@ let todosAlunos = [];
 
 async function carregar(){
 
-    const snapshot = await getDocs(collection(db, "escolas", escolaId, "alunos"));
+    const snapshot = await getDocs(collection(db, "alunos"));
 
     const turmasSet = new Set();
 
