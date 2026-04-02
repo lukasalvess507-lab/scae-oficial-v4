@@ -87,7 +87,7 @@ if(!codigo || !nome || !turma){
   return;
 }    
 await addDoc(
-  collection(db, "alunos"),
+  collection(db, "escolas", escolaId, "alunos")
   {
     escola: escolaId,
     codigo: codigo,
