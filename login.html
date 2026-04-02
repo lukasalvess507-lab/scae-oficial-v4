@@ -111,13 +111,21 @@ function cadastrar(){
     msg("Conta criada com sucesso!");
 }
 
-function entrar(){
+async function entrar(){
     const email = document.getElementById("email").value.trim();
     const senha = document.getElementById("senha").value.trim();
 
-    let usuarios = JSON.parse(localStorage.getItem("usuarios")) || [];
+    let usuario = null;
 
-    let usuario = usuarios.find(u => u.email === email && u.senha === senha);
+const querySnapshot = await getDocs(collection(db, "escolas"));
+
+querySnapshot.forEach((doc) => {
+  const data = doc.data();
+
+  if (data.email === email && data.senha === senha) {
+    usuario = data;
+  }
+});
 
     if(usuario){
         localStorage.setItem("email", usuario.email);
@@ -125,7 +133,7 @@ function entrar(){
 
         window.location.href = "index.html";
     } else {
-        msg("Logi inválido!");
+        msg("Login inválido!");
     }
 }
     
@@ -142,6 +150,26 @@ function msg(texto){
 }  
     
 </script>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+  import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
+  const firebaseConfig = {
+    apiKey: "AIzaSyD8ibst0QRuzqlfi4fiXZ4kt7h13SV-y24",
+    authDomain: "scae-sistema.firebaseapp.com",
+    projectId: "scae-sistema",
+    storageBucket: "scae-sistema.appspot.com",
+    messagingSenderId: "448013604838",
+    appId: "1:448013604838:web:524511ee6c17ddfa0fe827",
+    measurementId: "G-WM87K81S8K"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  window.db = db;
+  window.collection = collection;
+  window.getDocs = getDocs;
+</script>
 </body>
 </html>
