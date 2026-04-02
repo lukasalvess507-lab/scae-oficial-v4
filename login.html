@@ -112,32 +112,38 @@ function cadastrar(){
 }
 
 async function entrar(){
+  try {
+
     const email = document.getElementById("email").value.trim();
     const senha = document.getElementById("senha").value.trim();
 
     let usuario = null;
 
-const querySnapshot = await getDocs(collection(db, "escolas"));
+    const querySnapshot = await getDocs(collection(db, "escolas"));
 
-querySnapshot.forEach((doc) => {
-  const data = doc.data();
+    querySnapshot.forEach((doc) => {
+      const data = doc.data();
 
-  if (
-  data.email.trim() === email.trim() &&
-  data.senha.trim() === senha.trim()
-) {
-  usuario = data;
-}
-});
+      if (
+        data.email.trim() === email.trim() &&
+        data.senha.trim() === senha.trim()
+      ) {
+        usuario = data;
+      }
+    });
 
     if(usuario){
-        localStorage.setItem("email", usuario.email);
-        localStorage.setItem("escola", usuario.escola);
-
-        window.location.href = "index.html";
+      localStorage.setItem("email", usuario.email);
+      localStorage.setItem("escola", usuario.escola);
+      window.location.href = "index.html";
     } else {
-        msg("Login inválido!");
+      msg("Login inválido!");
     }
+
+  } catch (erro) {
+    console.error("Erro no login:", erro);
+    msg("Erro ao fazer login!");
+  }
 }
     
 function msg(texto){
