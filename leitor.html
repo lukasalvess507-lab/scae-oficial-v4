@@ -181,8 +181,9 @@ function liberar(){
 // iniciar câmera traseira
 const html5QrCode = new Html5Qrcode("reader");
 
-Html5Qrcode.getCameras().then(devices => {
-  if (devices && devices.length) {
+Html5Qrcode.getCameras()
+.then(devices => {
+  if (devices.length > 0) {
 
     const cameraId = devices[0].id;
 
@@ -194,9 +195,13 @@ Html5Qrcode.getCameras().then(devices => {
       }
     );
 
+  } else {
+    alert("Sem câmera");
   }
-}).catch(err => {
+})
+.catch(err => {
   console.error("ERRO CAMERA:", err);
+  alert("Erro ao abrir câmera");
 });
 </script>
 
