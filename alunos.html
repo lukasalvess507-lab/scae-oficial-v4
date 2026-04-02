@@ -107,7 +107,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-const escolaId = localStorage.getItem("escola")?.trim();
+const escolaId = localStorage.getItem("escola")?.trim().toLowerCase();
 
 let todosAlunos = [];
 
@@ -123,7 +123,7 @@ async function carregar(){
   const aluno = docSnap.data();
   aluno.id = docSnap.id;
 
-  if (aluno.escola?.trim() === escolaId) {
+  if (aluno.escola?.trim().toLowerCase() === escolaId) {
     todosAlunos.push(aluno);
     turmasSet.add(aluno.turma);
   }
