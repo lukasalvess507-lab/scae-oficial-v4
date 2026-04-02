@@ -75,7 +75,9 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 window.salvar = async function() {
-
+    
+alert("clicou salvar");
+    
   let escolaId = localStorage.getItem("escola");
 
   if (!escolaId) {
