@@ -123,22 +123,24 @@ async function entrar() {
     const querySnapshot = await getDocs(collection(db, "escolas"));
 
     let usuario = null;
+let escolaId = null;
 
-    querySnapshot.forEach((doc) => {
-      const data = doc.data();
+querySnapshot.forEach((doc) => {
+  const data = doc.data();
 
-      if (data.email === email && data.senha === senha) {
-        usuario = data;
-      }
-    });
+  if (data.email === email && data.senha === senha) {
+    usuario = data;
+    escolaId = doc.id;
+  }
+});
 
-    if (usuario) {
-      localStorage.setItem("email", usuario.email);
-      localStorage.setItem("escola", usuario.email);
-      window.location.href = "index.html";
-    } else {
-      msg("Login inválido!");
-    }
+if (usuario) {
+  localStorage.setItem("email", usuario.email);
+  localStorage.setItem("escola", escolaId);
+  window.location.href = "index.html";
+} else {
+  msg("Login inválido!");
+}
 
   } catch (e) {
     console.error(e);
