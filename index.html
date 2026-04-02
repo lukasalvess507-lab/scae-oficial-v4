@@ -134,5 +134,28 @@ if(escola){
     document.getElementById("nomeEscola").innerText = escola;
 }  
 </script>
+<script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-analytics.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+  // Your web app's Firebase configuration
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+  const firebaseConfig = {
+    apiKey: "AIzaSyD8ibst0QRuzqlfi4fiXZ4kt7h13SV-y24",
+    authDomain: "scae-sistema.firebaseapp.com",
+    projectId: "scae-sistema",
+    storageBucket: "scae-sistema.firebasestorage.app",
+    messagingSenderId: "448013604838",
+    appId: "1:448013604838:web:524511ee6c17ddfa0fe827",
+    measurementId: "G-WM87K81S8K"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+</script>    
 </body>
 </html>
