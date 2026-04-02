@@ -74,7 +74,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-let escolaId = localStorage.getItem("escola");
+let escolaId = localStorage.getItem("email");
 
 window.salvar = async function(){
 
@@ -82,14 +82,19 @@ window.salvar = async function(){
     const nome = document.getElementById("nome").value;
     const turma = document.getElementById("turma").value;
 
-    await addDoc(
-        collection(db, "escolas", escolaId, "alunos"),
-        {
-            codigo: codigo,
-            nome: nome,
-            turma: turma
-        }
-    );
+if(!codigo || !nome || !turma){
+  document.getElementById("msg").innerText = "Preencha todos os campos!";
+  return;
+}    
+await addDoc(
+  collection(db, "alunos"),
+  {
+    escola: escolaId,
+    codigo: codigo,
+    nome: nome,
+    turma: turma
+  }
+);
 
     document.getElementById("msg").innerText = "Aluno cadastrado com sucesso";
 
