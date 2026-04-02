@@ -126,10 +126,22 @@ async function processarCodigo(codigo){
   }
 
   // buscar aluno
-  const alunosSnap = await getDocs(collection(db, "alunos"));
-  let aluno = null;
+  const alunosSnap = await getDocs(
+  collection(db, "escolas", escolaId, "alunos")
+);
 
+let aluno = null;
+
+alunosSnap.forEach((doc) => {
   const data = doc.data();
+
+  if (
+    data.codigo == codigo &&
+    (data.escola || "").trim().toLowerCase() === (escolaId || "").trim().toLowerCase()
+  ) {
+    aluno = data;
+  }
+});
 
 if (
     data.codigo == codigo &&
