@@ -42,14 +42,28 @@ button{
     background:#1f4d2e;
 }
 
+.acoes{
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.btn-editar, .btn-excluir{
+    flex: 1;
+    padding: 6px;
+    font-size: 12px;
+    border-radius: 6px;
+    border: none;
+    color: white;
+    cursor: pointer;
+}
+
 .btn-editar{
-    background:#007bff;
-    margin-top:8px;
+    background: #007bff;
 }
 
 .btn-excluir{
-    background:#dc3545;
-    margin-top:5px;
+    background: #dc3545;
 }
 
 select{
@@ -139,9 +153,10 @@ function mostrar(lista){
             <b>Nome:</b> ${aluno.nome}<br>
             <b>Turma:</b> ${aluno.turma}
 
-            <button class="btn-editar" onclick="editar('${aluno.id}','${aluno.nome}','${aluno.turma}')">Editar</button>
-            <button class="btn-excluir" onclick="excluir('${aluno.id}')">Excluir</button>
-        </div>
+            <div class="acoes">
+    <button class="btn-editar" onclick="editar('${aluno.id}','${aluno.nome}','${aluno.turma}')">Editar</button>
+    <button class="btn-excluir" onclick="excluir('${aluno.id}')">Excluir</button>
+</div>
         `;
     });
 }
@@ -165,7 +180,7 @@ window.editar = async function(id, nomeAtual, turmaAtual){
 
     if(!novoNome || !novaTurma) return;
 
-    await updateDoc(doc(db, "escolas", escolaId, "alunos", id), {
+    await updateDoc(doc(db, "alunos", id), {
         nome: novoNome,
         turma: novaTurma
     });
@@ -181,7 +196,7 @@ window.excluir = async function(id){
 
     if(!confirmar) return;
 
-    await deleteDoc(doc(db, "escolas", escolaId, "alunos", id));
+    await deleteDoc(doc(db, "alunos", id));
 
     alert("Aluno excluído");
     carregar();
