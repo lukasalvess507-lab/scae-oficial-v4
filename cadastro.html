@@ -87,7 +87,7 @@ if(!codigo || !nome || !turma){
   return;
 }    
 await addDoc(
-  collection(db, "escolas", escolaId, "alunos")
+  collection(db, "escolas", escolaId, "alunos"),
   {
     escola: escolaId,
     codigo: codigo,
@@ -95,7 +95,6 @@ await addDoc(
     turma: turma
   }
 );
-
     document.getElementById("msg").innerText = "Aluno cadastrado com sucesso";
 
     document.getElementById("codigo").value = "";
