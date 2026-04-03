@@ -30,24 +30,17 @@ const total = document.getElementById("total");
 const filtro = document.getElementById("filtroTurma");
 
 onSnapshot(collection(db, "leituras"), (snapshot) => {
-  alunosMap = {};
-  snap.forEach(doc => {
-    const d = doc.data();
-    alunosMap[String(d.codigo)] = d.turma || "Sem turma";
-  });
-});
-
-onSnapshot(collection(db, "leituras"), (snapshot) => {
   registros = [];
 
   snapshot.forEach(doc => {
     const d = doc.data();
+    console.log(d);
 
     const hoje = new Date().toISOString().split("T")[0];
 // if (d.data !== hoje) return;
     
     registros.push({
-      nome: d.nome || "",
+      nome: d.codigo || "Aluno",
       codigo: String(d.codigo || ""),
       turma: alunosMap[String(d.codigo)] || "Sem turma",
       data: d.data || "",
