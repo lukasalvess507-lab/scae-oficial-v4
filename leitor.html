@@ -193,11 +193,11 @@ function liberar(){
 // iniciar câmera traseira
 const html5QrCode = new Html5Qrcode("reader");
 
-Html5Qrcode.getCameras()
+html5QrCode.getCameras()
 .then(devices => {
   if (devices.length > 0) {
 
-    const cameraId = devices[0].id;
+    const cameraId = devices.find(d => d.label.toLowerCase().includes("back"))?.id || devices[0].id;
 
     html5QrCode.start(
       cameraId,
