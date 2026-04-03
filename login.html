@@ -76,7 +76,15 @@ button{
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-import { getFirestore, collection, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+
+import { 
+  getFirestore, 
+  collection, 
+  getDocs, 
+  addDoc,
+  doc,
+  setDoc
+} from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyD8ibst0QRuzqlfi4fiXZ4kt7h13SV-y24",
@@ -101,8 +109,6 @@ async function cadastrar() {
       msg("Preencha tudo!");
       return;
     }
-
-    import { doc, setDoc } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
 await setDoc(doc(db, "escolas", email), {
   escola,
