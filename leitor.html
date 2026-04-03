@@ -72,12 +72,31 @@ button{
 
 <button onclick="iniciarCamera()">Iniciar Câmera</button>
 
-<script>
+<script type="module">
+
+// 🔥 FIREBASE (JÁ CONFIGURADO)
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyD8ibst0QRuzqlfi4fiXZ4kt7h13SV-y24",
+  authDomain: "scae-sistema.firebaseapp.com",
+  projectId: "scae-sistema",
+  storageBucket: "scae-sistema.firebasestorage.app",
+  messagingSenderId: "448013604838",
+  appId: "1:448013604838:web:524511ee6c17ddfa0fe827",
+  measurementId: "G-WM87K81S8K"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// 🔥 LEITOR
 
 let html5QrCode;
 let bloqueado = false;
 let ultimoCodigo = "";
-let tempoBloqueio = 2000; // 2 segundos
+let tempoBloqueio = 2000;
 
 const status = document.getElementById("status");
 const barra = document.getElementById("barra");
@@ -101,7 +120,7 @@ function resetar(){
     }, tempoBloqueio);
 }
 
-function processarCodigo(codigo){
+async function processarCodigo(codigo){
 
     if(bloqueado){
         return;
@@ -109,13 +128,27 @@ function processarCodigo(codigo){
 
     bloqueado = true;
 
-    if(codigo === ultimoCodigo){
-        mostrar("QR já lido!", "red");
-    } else {
-        ultimoCodigo = codigo;
-        beep();
-        mostrar("Leitura OK!", "green");
-        console.log("QR:", codigo);
+    try {
+
+        const ref = doc(db, "leituras", codigo);
+        const snap = await getDoc(ref);
+
+        if(snap.exists()){
+            mostrar("Já registrado!", "red");
+        } else {
+
+            await setDoc(ref, {
+                codigo: codigo,
+                data: new Date()
+            });
+
+            beep();
+            mostrar("Registrado com sucesso!", "green");
+        }
+
+    } catch(e){
+        console.log(e);
+        mostrar("Erro ao salvar", "red");
     }
 
     resetar();
@@ -129,7 +162,7 @@ function iniciarCamera(){
 
         if(devices.length){
 
-            const traseira = devices.find(d => d.label.toLowerCase().includes("back")) || devices[0];
+            const traseira = devices[devices.length - 1];
 
             html5QrCode.start(
                 traseira.id,
