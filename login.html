@@ -145,6 +145,8 @@ querySnapshot.forEach((doc) => {
 if (usuario) {
   localStorage.setItem("email", usuario.email);
   localStorage.setItem("escola", escolaId);
+    localStorage.setItem("usuarioLogado", usuario.email);
+    
   window.location.href = "index.html";
 } else {
   msg("Login inválido!");
