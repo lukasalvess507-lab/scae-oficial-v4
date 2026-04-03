@@ -222,6 +222,35 @@ function liberar(){
 
 });
 };  
+
+  function iniciarCamera() {
+
+    const html5QrCode = new Html5Qrcode("reader");
+
+  html5Qrcode.getCameras().then(devices => {
+
+    if (devices && devices.length) {
+
+        const cameraId = devices[0].id;
+
+        html5QrCode.start(
+            cameraId,
+            { fps: 10, qrbox: 250 },
+            (decodedText) => {
+                processarCodigo(decodedText);
+            }
+        );
+
+    } else {
+        alert("Sem câmera");
+    }
+
+}).catch(err => {
+    alert("Erro: " + err);
+    console.log(err);
+});
+
+}
 </script>
 
 </body>
