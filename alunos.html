@@ -8,92 +8,81 @@
 
 <style>
 body{
-    font-family: Arial;
-    background:#f5f5f5;
-    text-align:center;
+  font-family: Arial;
+  background: linear-gradient(135deg, #1e3a5f, #2a4d69);
+  color: white;
+  text-align: center;
+  padding: 20px;
 }
 
 .container{
-    background:white;
-    padding:20px;
-    border-radius:12px;
-    max-width:400px;
-    margin:40px auto;
-}
-
-.card{
-    background:#eee;
-    padding:12px;
-    margin:10px 0;
-    border-radius:8px;
-    text-align:left;
-}
-
-button{
-    width:100%;
-    padding:12px;
-    margin-top:10px;
-    border:none;
-    border-radius:8px;
-    color:white;
-}
-
-.btn-voltar{
-    background:#1f4d2e;
-}
-
-.acoes{
-    display: flex;
-    gap: 8px;
-    margin-top: 10px;
-}
-
-.btn-editar, .btn-excluir{
-    flex: 1;
-    padding: 6px;
-    font-size: 12px;
-    border-radius: 6px;
-    border: none;
-    color: white;
-    cursor: pointer;
-}
-
-.btn-editar{
-    background: #007bff;
-}
-
-.btn-excluir{
-    background: #dc3545;
+  background: white;
+  color: black;
+  padding: 20px;
+  border-radius: 12px;
+  max-width: 400px;
+  margin: auto;
 }
 
 select{
-    width:100%;
-    padding:10px;
-    margin-bottom:10px;
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border-radius: 8px;
+}
+
+.aluno{
+  text-align: left;
+  padding: 10px;
+  border-bottom: 1px solid #ccc;
+}
+
+.nome{
+  font-weight: bold;
+}
+
+.turma{
+  font-size: 12px;
+  color: gray;
+}
+
+button{
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+  border: none;
+  border-radius: 8px;
+  background: #1f4d2e;
+  color: white;
+}
+
+.excluir{
+  background: red;
+  margin-top: 5px;
 }
 </style>
 </head>
 
 <body>
 
+<h2>Lista de Alunos</h2>
+
 <div class="container">
 
-<h3>Lista de Alunos</h3>
-
-<select id="filtroTurma" onchange="filtrar()">
-    <option value="todas">Todas as turmas</option>
+<select id="filtroTurma">
+  <option value="">Todas as turmas</option>
 </select>
 
 <div id="lista"></div>
 
-<button class="btn-voltar" onclick="voltar()">Voltar</button>
+<button onclick="window.history.back()">Voltar</button>
 
 </div>
 
 <script type="module">
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-import { getFirestore, collection, getDocs, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+import { getFirestore, collection, getDocs, query, where, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyD8ibst0QRuzqlfi4fiXZ4kt7h13SV-y24",
@@ -107,108 +96,93 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-const escolaId = localStorage.getItem("escola")?.trim().toLowerCase();
+const lista = document.getElementById("lista");
+const filtro = document.getElementById("filtroTurma");
 
-let todosAlunos = [];
+const escolaId = localStorage.getItem("escola");
 
-async function carregar(){
+if(!escolaId){
+  alert("Erro: faça login novamente");
+  window.location.href = "login.html";
+}
 
-    const snapshot = await getDocs(collection(db, "escolas", escolaId, "alunos"));
+let alunos = [];
 
-    const turmasSet = new Set();
+async function carregarAlunos(){
 
-    todosAlunos = [];
+  const q = query(
+    collection(db, "alunos"),
+    where("escolaId", "==", escolaId)
+  );
 
-    snapshot.forEach(docSnap => {
-  const aluno = docSnap.data();
-  aluno.id = docSnap.id;
+  const snapshot = await getDocs(q);
 
-  if (aluno.escola?.trim().toLowerCase() === escolaId) {
-    todosAlunos.push(aluno);
-    turmasSet.add(aluno.turma);
-  }
-});
+  alunos = [];
 
-    const select = document.getElementById("filtroTurma");
-    select.innerHTML = '<option value="todas">Todas as turmas</option>';
+  let turmasSet = new Set();
 
-    turmasSet.forEach(turma => {
-        const option = document.createElement("option");
-        option.value = turma;
-        option.textContent = turma;
-        select.appendChild(option);
+  snapshot.forEach(docSnap => {
+    const data = docSnap.data();
+
+    alunos.push({
+      id: docSnap.id,
+      ...data
     });
 
-    mostrar(todosAlunos);
+    turmasSet.add(data.turma);
+  });
+
+  preencherFiltro([...turmasSet]);
+  mostrarAlunos();
 }
 
-function mostrar(lista){
+function preencherFiltro(turmas){
+  turmas.forEach(t => {
+    const op = document.createElement("option");
+    op.value = t;
+    op.textContent = t;
+    filtro.appendChild(op);
+  });
+}
 
-    const div = document.getElementById("lista");
-    div.innerHTML = "";
+filtro.addEventListener("change", mostrarAlunos);
 
-    lista.forEach(aluno => {
+function mostrarAlunos(){
 
-        div.innerHTML += `
-        <div class="card">
-            <b>Código:</b> ${aluno.codigo}<br>
-            <b>Nome:</b> ${aluno.nome}<br>
-            <b>Turma:</b> ${aluno.turma}
+  lista.innerHTML = "";
 
-            <div class="acoes">
-    <button class="btn-editar" onclick="editar('${aluno.id}','${aluno.nome}','${aluno.turma}')">Editar</button>
-    <button class="btn-excluir" onclick="excluir('${aluno.id}')">Excluir</button>
-</div>
-        `;
+  const turmaSelecionada = filtro.value;
+
+  alunos
+    .filter(a => !turmaSelecionada || a.turma === turmaSelecionada)
+    .forEach(a => {
+
+      const div = document.createElement("div");
+      div.className = "aluno";
+
+      div.innerHTML = `
+        <div class="nome">${a.codigo} - ${a.nome}</div>
+        <div class="turma">${a.turma}</div>
+        <button class="excluir" onclick="excluirAluno('${a.id}')">Excluir</button>
+      `;
+
+      lista.appendChild(div);
     });
 }
 
-window.filtrar = function(){
+window.excluirAluno = async function(id){
 
-    const turma = document.getElementById("filtroTurma").value;
-
-    if(turma === "todas"){
-        mostrar(todosAlunos);
-    } else {
-        const filtrados = todosAlunos.filter(a => a.turma === turma);
-        mostrar(filtrados);
-    }
-}
-
-window.editar = async function(id, nomeAtual, turmaAtual){
-
-    const novoNome = prompt("Editar nome:", nomeAtual);
-    const novaTurma = prompt("Editar turma:", turmaAtual);
-
-    if(!novoNome || !novaTurma) return;
-
-    await updateDoc(doc(db, "alunos", id), {
-        nome: novoNome,
-        turma: novaTurma
-    });
-    
-
-    alert("Aluno atualizado");
-    carregar();
-}
-
-window.excluir = async function(id){
-
-    const confirmar = confirm("Deseja excluir este aluno?");
-
-    if(!confirmar) return;
+  if(confirm("Deseja excluir este aluno?")){
 
     await deleteDoc(doc(db, "alunos", id));
 
-    alert("Aluno excluído");
-    carregar();
+    alert("Aluno excluído!");
+
+    carregarAlunos();
+  }
 }
 
-window.voltar = function(){
-    window.location.href = "index.html";
-}
-
-carregar();
+carregarAlunos();
 
 </script>
 
