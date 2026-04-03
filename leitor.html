@@ -193,19 +193,23 @@ function liberar(){
 // iniciar câmera traseira
 const html5QrCode = new Html5Qrcode("reader");
 
-html5QrCode.start(
-    { facingMode: "environment" },
-    { fps: 10, qrbox: 250 },
-    (decodedText) => {
-        processarCodigo(decodedText);
-    },
-    (error) => {
-        // pode ignorar erros de leitura
-    }
-).catch(err => {
-    console.error("ERRO CAMERA:", err);
-    alert("Erro ao abrir câmera");
-});
+window.onload = () => {
+
+    html5QrCode.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: 250 },
+        (decodedText) => {
+            processarCodigo(decodedText);
+        },
+        (error) => {
+            // ignorar erros
+        }
+    ).catch(err => {
+        console.error("ERRO CAMERA:", err);
+        alert("Erro ao abrir câmera");
+    });
+
+};
 </script>
 
 </body>
