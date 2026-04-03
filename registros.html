@@ -82,7 +82,22 @@ const lista = document.getElementById("lista");
 const total = document.getElementById("total");
 const filtro = document.getElementById("filtroTurma");
 
+let alunosMap = {};
 let registros = [];
+
+onSnapshot(collection(db, "alunos"), (snapshot) => {
+    alunosMap = {};
+
+    snapshot.forEach(doc => {
+        const d = doc.data();
+        alunosMap[String(d.codigo)] = {
+            nome: d.nome,
+            turma: d.turma
+        };
+    });
+
+    renderizar();
+});
 
 onSnapshot(collection(db, "leituras"), (snapshot) => {
 
@@ -95,11 +110,7 @@ onSnapshot(collection(db, "leituras"), (snapshot) => {
 
         if (d.data !== hoje) return;
 
-        registros.push({
-            codigo: d.codigo,
-            nome: "Aluno " + d.codigo,
-            turma: "Sem turma"
-        });
+        registros.push(d);
     });
 
     renderizar();
@@ -114,21 +125,28 @@ function renderizar() {
 
     registros.forEach(r => {
 
-        if (turmaSelecionada !== "todas" && r.turma !== turmaSelecionada) return;
+        const aluno = alunosMap[String(r.codigo)];
+
+        const nome = aluno ? aluno.nome : "Aluno não encontrado";
+        const turma = aluno ? aluno.turma : "Sem turma";
+
+        if (turmaSelecionada !== "todas" && turma !== turmaSelecionada) return;
 
         contador++;
 
         lista.innerHTML += `
             <div class="aluno">
-                <strong>${r.nome}</strong><br>
+                <strong>${nome}</strong><br>
                 Código: ${r.codigo}<br>
-                Turma: ${r.turma}
+                Turma: ${turma}
             </div>
         `;
     });
 
     total.innerText = "Total: " + contador + " alunos";
 }
+
+filtro.addEventListener("change", renderizar);
 
 </script>
 
