@@ -1,72 +1,70 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cadastrar Aluno</title>
 
 <style>
-body{
+body {
     font-family: Arial;
-    background:#f5f5f5;
-    text-align:center;
+    background: linear-gradient(#1e3c72, #2a5298);
+    color: white;
+    text-align: center;
 }
 
-.container{
-    background:white;
-    padding:20px;
-    border-radius:10px;
-    max-width:300px;
-    margin:50px auto;
+.container {
+    background: #fff;
+    color: #000;
+    margin: 50px auto;
+    padding: 20px;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 400px;
 }
 
-input{
-    width:90%;
-    padding:10px;
-    margin:5px;
+input, button {
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
 }
 
-button{
-    width:95%;
-    padding:12px;
-    margin-top:10px;
-    background:#1f4d2e;
-    color:white;
-    border:none;
-    border-radius:8px;
+.aluno {
+    text-align: left;
+    padding: 10px;
+    border-bottom: 1px solid #ccc;
 }
 </style>
 
 </head>
-
 <body>
+
+<h1>S.C.A.E</h1>
+<p>Cadastrar Aluno</p>
 
 <div class="container">
 
-<h3>Cadastrar Aluno</h3>
-
-<input type="text" id="codigo" placeholder="Código">
-<input type="text" id="nome" placeholder="Nome do aluno">
-<input type="text" id="turma" placeholder="Turma">
+<input id="codigo" placeholder="Código">
+<input id="nome" placeholder="Nome">
+<input id="turma" placeholder="Turma">
 
 <button onclick="salvar()">Salvar</button>
 
-<p id="msg"></p>
+<div id="lista"></div>
 
-<button onclick="voltar()">Voltar</button>
+<button onclick="window.history.back()">Voltar</button>
 
 </div>
 
 <script type="module">
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
-    
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
 const firebaseConfig = {
   apiKey: "AIzaSyD8ibst0QRuzqlfi4fiXZ4kt7h13SV-y24",
   authDomain: "scae-sistema.firebaseapp.com",
   projectId: "scae-sistema",
-  storageBucket: "scae-sistema.appspot.com",
+  storageBucket: "scae-sistema.firebasestorage.app",
   messagingSenderId: "448013604838",
   appId: "1:448013604838:web:524511ee6c17ddfa0fe827"
 };
@@ -74,45 +72,69 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-window.salvar = async function() {
-    
-// alert("clicou salvar");
-    
-  let escolaId = localStorage.getItem("escola");
+const lista = document.getElementById("lista");
 
-  if (!escolaId) {
-    alert("Erro: escola não identificada. Faça login novamente.");
-    return;
-  }
-
-  const codigo = document.getElementById("codigo").value;
-  const nome = document.getElementById("nome").value;
-  const turma = document.getElementById("turma").value;
-
-  if (!codigo || !nome || !turma) {
-    document.getElementById("msg").innerText = "Preencha todos os campos!";
-    return;
-  }
-
-  await addDoc(
-    collection(db, "escolas", escolaId, "alunos"),
-    {
-      escola: escolaId,
-      codigo: codigo,
-      nome: nome,
-      turma: turma
-    }
-  );
-
-  document.getElementById("msg").innerText = "Aluno cadastrado com sucesso";
-
+function limparCampos() {
     document.getElementById("codigo").value = "";
     document.getElementById("nome").value = "";
     document.getElementById("turma").value = "";
 }
 
-window.voltar = function(){
-    window.location.href = "index.html";
+async function salvar() {
+
+    const codigo = document.getElementById("codigo").value.trim();
+    const nome = document.getElementById("nome").value.trim();
+    const turma = document.getElementById("turma").value.trim();
+
+    if (!codigo || !nome || !turma) {
+        alert("Preencha todos os campos");
+        return;
+    }
+
+    // evita duplicar código
+    const q = query(collection(db, "alunos"), where("codigo", "==", codigo));
+    const existente = await getDocs(q);
+
+    if (!existente.empty) {
+        alert("Código já cadastrado");
+        return;
+    }
+
+    await addDoc(collection(db, "alunos"), {
+        codigo,
+        nome,
+        turma
+    });
+
+    limparCampos();
+}
+
+onSnapshot(collection(db, "alunos"), (snapshot) => {
+
+    lista.innerHTML = "";
+
+    snapshot.forEach(docSnap => {
+
+        const d = docSnap.data();
+        const id = docSnap.id;
+
+        lista.innerHTML += `
+            <div class="aluno">
+                <strong>${d.nome}</strong><br>
+                Código: ${d.codigo}<br>
+                Turma: ${d.turma}<br>
+                <button onclick="excluir('${id}')">Excluir</button>
+            </div>
+        `;
+    });
+});
+
+window.excluir = async function(id) {
+
+    const confirmar = confirm("Deseja excluir este aluno?");
+    if (!confirmar) return;
+
+    await deleteDoc(doc(db, "alunos", id));
 }
 
 </script>
