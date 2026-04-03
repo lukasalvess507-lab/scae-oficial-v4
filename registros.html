@@ -44,7 +44,7 @@ onSnapshot(collection(db, "leituras"), (snapshot) => {
     const d = doc.data();
 
     const hoje = new Date().toISOString().split("T")[0];
-if (d.data !== hoje) return;
+// if (d.data !== hoje) return;
     
     registros.push({
       nome: d.nome || "",
