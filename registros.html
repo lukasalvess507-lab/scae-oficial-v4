@@ -45,6 +45,13 @@ body{
   color: gray;
 }
 
+select{
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+}
+
 button{
   width: 100%;
   padding: 10px;
@@ -64,6 +71,10 @@ button{
 <div class="container">
 
 <div class="total" id="total">0 alunos</div>
+
+<select id="filtroTurma">
+  <option value="">Todas as turmas</option>
+</select>
 
 <div id="lista"></div>
 
@@ -90,14 +101,15 @@ const db = getFirestore(app);
 
 const lista = document.getElementById("lista");
 const totalDiv = document.getElementById("total");
+const filtroTurma = document.getElementById("filtroTurma");
 
 const escolaId = localStorage.getItem("escola");
-
 const hoje = new Date().toISOString().split("T")[0];
+
+let dados = [];
 
 async function carregarResumo(){
 
-  // buscar leituras do dia
   const q = query(
     collection(db, "leituras"),
     where("data", "==", hoje),
@@ -106,16 +118,14 @@ async function carregarResumo(){
 
   const snapshot = await getDocs(q);
 
-  let total = 0;
-
   lista.innerHTML = "";
+  dados = [];
 
   for(const docSnap of snapshot.docs){
 
     const leitura = docSnap.data();
     const codigo = leitura.codigo;
 
-    // buscar dados do aluno
     const alunosSnap = await getDocs(
       query(
         collection(db, "alunos"),
@@ -128,22 +138,58 @@ async function carregarResumo(){
 
       const aluno = alunoDoc.data();
 
-      const div = document.createElement("div");
-      div.className = "item";
+      dados.push(aluno);
 
-      div.innerHTML = `
-        <div class="nome">${aluno.codigo} - ${aluno.nome}</div>
-        <div class="turma">${aluno.turma}</div>
-      `;
-
-      lista.appendChild(div);
-
-      total++;
     });
   }
 
+  preencherTurmas();
+  renderizarLista();
+}
+
+function preencherTurmas(){
+
+  const turmas = new Set();
+
+  dados.forEach(aluno => {
+    turmas.add(aluno.turma);
+  });
+
+  turmas.forEach(turma => {
+    const option = document.createElement("option");
+    option.value = turma;
+    option.textContent = turma;
+    filtroTurma.appendChild(option);
+  });
+}
+
+function renderizarLista(){
+
+  lista.innerHTML = "";
+  let total = 0;
+
+  const turmaSelecionada = filtroTurma.value;
+
+  dados.forEach(aluno => {
+
+    if(turmaSelecionada && aluno.turma !== turmaSelecionada) return;
+
+    const div = document.createElement("div");
+    div.className = "item";
+
+    div.innerHTML = `
+      <div class="nome">${aluno.codigo} - ${aluno.nome}</div>
+      <div class="turma">${aluno.turma}</div>
+    `;
+
+    lista.appendChild(div);
+    total++;
+  });
+
   totalDiv.textContent = total + " alunos";
 }
+
+filtroTurma.addEventListener("change", renderizarLista);
 
 carregarResumo();
 
