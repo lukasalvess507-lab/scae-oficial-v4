@@ -6,6 +6,7 @@
 
 <title>Histórico</title>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <style>
@@ -26,6 +27,17 @@ body{
   margin: auto;
 }
 
+input, select{
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+}
+
+canvas{
+  margin-top: 15px;
+}
+
 .item{
   text-align: left;
   padding: 10px;
@@ -37,13 +49,6 @@ body{
   color: gray;
 }
 
-input{
-  width: 100%;
-  padding: 8px;
-  margin-bottom: 10px;
-  border-radius: 8px;
-}
-
 button{
   width: 100%;
   padding: 10px;
@@ -52,15 +57,9 @@ button{
   border: none;
 }
 
-.pdf{
-  background: #f5f5f5;
+.btn{
+  background: #f1f1f1;
   color: #333;
-  border: 1px solid #ddd;
-  transition: 0.2s;
-}
-
-.pdf:hover{
-  background: #e0e0e0;
 }
 
 .voltar{
@@ -78,9 +77,16 @@ button{
 
 <input type="date" id="dataFiltro">
 
+<select id="turmaFiltro">
+  <option value="">Todas as turmas</option>
+</select>
+
+<canvas id="grafico"></canvas>
+
 <div id="lista"></div>
 
-<button class="pdf" onclick="exportarPDF()">Exportar PDF</button>
+<button class="btn" onclick="exportarPDF()">Exportar PDF</button>
+<button class="btn" onclick="exportarGrafico()">Exportar Gráfico</button>
 <button class="voltar" onclick="window.history.back()">Voltar</button>
 
 </div>
@@ -104,17 +110,18 @@ const db = getFirestore(app);
 
 const lista = document.getElementById("lista");
 const dataFiltro = document.getElementById("dataFiltro");
+const turmaFiltro = document.getElementById("turmaFiltro");
 
 const escolaId = localStorage.getItem("escola");
 
 let dados = [];
+let grafico;
 
 async function carregar(){
 
   const snapshot = await getDocs(collection(db, "leituras"));
 
-  lista.innerHTML = "";
-  dados = [];
+  const turmasSet = new Set();
 
   for(const docSnap of snapshot.docs){
 
@@ -139,21 +146,34 @@ async function carregar(){
         data: leitura.data
       });
 
+      turmasSet.add(aluno.turma);
+
     });
   }
 
-  renderizar();
+  turmasSet.forEach(t => {
+    const op = document.createElement("option");
+    op.value = t;
+    op.textContent = t;
+    turmaFiltro.appendChild(op);
+  });
+
+  atualizarTela();
 }
 
-function renderizar(){
+function atualizarTela(){
+
+  const data = dataFiltro.value;
+  const turma = turmaFiltro.value;
 
   lista.innerHTML = "";
 
-  const filtro = dataFiltro.value;
+  const turmas = {};
 
   dados.forEach(item => {
 
-    if(filtro && item.data !== filtro) return;
+    if(data && item.data !== data) return;
+    if(turma && item.turma !== turma) return;
 
     const div = document.createElement("div");
     div.className = "item";
@@ -165,22 +185,58 @@ function renderizar(){
     `;
 
     lista.appendChild(div);
+
+    if(!turmas[item.turma]) turmas[item.turma] = 0;
+    turmas[item.turma]++;
+  });
+
+  criarGrafico(turmas);
+}
+
+function criarGrafico(turmas){
+
+  const labels = Object.keys(turmas);
+  const valores = Object.values(turmas);
+
+  if(grafico) grafico.destroy();
+
+  grafico = new Chart(document.getElementById("grafico"), {
+    type: "pie",
+    data: {
+      labels: labels,
+      datasets: [{
+        data: valores
+      }]
+    }
   });
 }
 
-dataFiltro.addEventListener("change", renderizar);
+dataFiltro.addEventListener("change", atualizarTela);
+turmaFiltro.addEventListener("change", atualizarTela);
 
-async function exportarPDF(){
+function exportarPDF(){
 
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
+
+  const data = dataFiltro.value;
+  const turma = turmaFiltro.value;
 
   let y = 10;
 
   doc.text("Relatório de Leituras", 10, y);
   y += 10;
 
+  doc.text(`Data: ${data || "Todas"}`, 10, y);
+  y += 8;
+
+  doc.text(`Turma: ${turma || "Todas"}`, 10, y);
+  y += 10;
+
   dados.forEach(item => {
+
+    if(data && item.data !== data) return;
+    if(turma && item.turma !== turma) return;
 
     doc.text(
       `${item.codigo} - ${item.nome} | ${item.turma} | ${item.data}`,
@@ -198,6 +254,17 @@ async function exportarPDF(){
   });
 
   doc.save("relatorio.pdf");
+}
+
+function exportarGrafico(){
+
+  const canvas = document.getElementById("grafico");
+  const imagem = canvas.toDataURL("image/png");
+
+  const link = document.createElement("a");
+  link.href = imagem;
+  link.download = "grafico.png";
+  link.click();
 }
 
 carregar();
