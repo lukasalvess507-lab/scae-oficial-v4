@@ -191,25 +191,37 @@ function liberar(){
 }
 
 // iniciar câmera traseira
-const html5QrCode = new Html5Qrcode("reader");
 
-window.onload = () => {
+  document.addEventListener("DOMContentLoaded", () => {
 
-    html5QrCode.start(
-        { facingMode: "environment" },
-        { fps: 10, qrbox: 250 },
-        (decodedText) => {
-            processarCodigo(decodedText);
-        },
-        (error) => {
-            // ignorar erros
+    const html5QrCode = new Html5Qrcode("reader");
+
+    Html5Qrcode.getCameras().then(devices => {
+
+        if (devices && devices.length) {
+
+            const cameraId = devices.find(d => d.label.toLowerCase().includes("back"))?.id || devices[0].id;
+
+            html5QrCode.start(
+                cameraId,
+                { fps: 10, qrbox: 250 },
+                (decodedText) => {
+                    processarCodigo(decodedText);
+                },
+                (error) => {}
+            );
+
+        } else {
+            alert("Nenhuma câmera encontrada");
         }
-    ).catch(err => {
+
+    }).catch(err => {
         console.error("ERRO CAMERA:", err);
         alert("Erro ao abrir câmera");
     });
 
-};
+});
+};  
 </script>
 
 </body>
