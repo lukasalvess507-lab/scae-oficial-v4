@@ -43,7 +43,7 @@ input, button {
 
 <div class="container">
 
-<input id="codigo" placeholder="Código">
+<input id="codigo" placeholder="Código (ex: 001)">
 <input id="nome" placeholder="Nome">
 <input id="turma" placeholder="Turma">
 
@@ -74,6 +74,17 @@ const db = getFirestore(app);
 
 const lista = document.getElementById("lista");
 
+// 🔐 pega escola logada
+const escola = localStorage.getItem("usuarioLogado");
+
+if (!escola) {
+    alert("Erro: escola não identificada. Faça login novamente.");
+    window.location.href = "login.html";
+}
+
+// 🔗 caminho correto por escola
+const alunosRef = collection(db, "escolas", escola, "alunos");
+
 function limparCampos() {
     document.getElementById("codigo").value = "";
     document.getElementById("nome").value = "";
@@ -91,8 +102,8 @@ async function salvar() {
         return;
     }
 
-    // evita duplicar código
-    const q = query(collection(db, "alunos"), where("codigo", "==", codigo));
+    // evita duplicado
+    const q = query(alunosRef, where("codigo", "==", codigo));
     const existente = await getDocs(q);
 
     if (!existente.empty) {
@@ -100,7 +111,7 @@ async function salvar() {
         return;
     }
 
-    await addDoc(collection(db, "alunos"), {
+    await addDoc(alunosRef, {
         codigo,
         nome,
         turma
@@ -109,7 +120,8 @@ async function salvar() {
     limparCampos();
 }
 
-onSnapshot(collection(db, "alunos"), (snapshot) => {
+// 🔄 LISTA EM TEMPO REAL
+onSnapshot(alunosRef, (snapshot) => {
 
     lista.innerHTML = "";
 
@@ -129,12 +141,13 @@ onSnapshot(collection(db, "alunos"), (snapshot) => {
     });
 });
 
+// ❌ EXCLUIR
 window.excluir = async function(id) {
 
     const confirmar = confirm("Deseja excluir este aluno?");
     if (!confirmar) return;
 
-    await deleteDoc(doc(db, "alunos", id));
+    await deleteDoc(doc(db, "escolas", escola, "alunos", id));
 }
 
 </script>
