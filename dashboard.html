@@ -6,6 +6,8 @@
 
 <title>Dashboard</title>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <style>
 body{
   font-family: Arial;
@@ -24,21 +26,18 @@ body{
   margin: auto;
 }
 
-.total{
-  font-size: 32px;
-  font-weight: bold;
-  margin-bottom: 20px;
+canvas{
+  margin-top: 20px;
+}
+
+.ranking{
+  text-align: left;
+  margin-top: 20px;
 }
 
 .item{
-  text-align: left;
-  margin-bottom: 10px;
-}
-
-.barra{
-  height: 10px;
-  background: #4caf50;
-  border-radius: 5px;
+  padding: 8px;
+  border-bottom: 1px solid #ccc;
 }
 
 button{
@@ -56,13 +55,19 @@ button{
 
 <body>
 
-<h2>Dashboard</h2>
+<h2>S.C.A.E</h2>
+<p>Dashboard</p>
 
 <div class="container">
 
-<div class="total" id="total">0</div>
+<h3>Alunos por dia</h3>
+<canvas id="graficoDia"></canvas>
 
-<div id="lista"></div>
+<h3>Alunos por turma</h3>
+<canvas id="graficoTurma"></canvas>
+
+<h3>Ranking de turmas</h3>
+<div id="ranking"></div>
 
 <button onclick="window.history.back()">Voltar</button>
 
@@ -85,13 +90,10 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-const lista = document.getElementById("lista");
-const totalDiv = document.getElementById("total");
-
 const escolaId = localStorage.getItem("escola");
 const hoje = new Date().toISOString().split("T")[0];
 
-async function carregarDashboard(){
+async function carregar(){
 
   const q = query(
     collection(db, "leituras"),
@@ -122,9 +124,7 @@ async function carregarDashboard(){
       const aluno = alunoDoc.data();
       const turma = aluno.turma;
 
-      if(!turmas[turma]){
-        turmas[turma] = 0;
-      }
+      if(!turmas[turma]) turmas[turma] = 0;
 
       turmas[turma]++;
       total++;
@@ -132,33 +132,54 @@ async function carregarDashboard(){
     });
   }
 
-  totalDiv.textContent = total + " leituras hoje";
-
-  renderizarTurmas(turmas);
+  criarGraficos(turmas, total);
 }
 
-function renderizarTurmas(turmas){
+function criarGraficos(turmas, total){
 
-  lista.innerHTML = "";
+  const labels = Object.keys(turmas);
+  const valores = Object.values(turmas);
+
+  // GRÁFICO DE BARRA (total do dia)
+  new Chart(document.getElementById("graficoDia"), {
+    type: "bar",
+    data: {
+      labels: ["Hoje"],
+      datasets: [{
+        label: "Alunos por dia",
+        data: [total]
+      }]
+    }
+  });
+
+  // GRÁFICO DE PIZZA
+  new Chart(document.getElementById("graficoTurma"), {
+    type: "pie",
+    data: {
+      labels: labels,
+      datasets: [{
+        data: valores
+      }]
+    }
+  });
+
+  // RANKING
+  const ranking = document.getElementById("ranking");
 
   const ordenado = Object.entries(turmas)
     .sort((a,b) => b[1] - a[1]);
 
-  ordenado.forEach(([turma, quantidade]) => {
+  ordenado.forEach(([turma, qtd]) => {
 
     const div = document.createElement("div");
     div.className = "item";
+    div.textContent = `${turma}: ${qtd} alunos`;
 
-    div.innerHTML = `
-      <strong>${turma}</strong> - ${quantidade}
-      <div class="barra" style="width:${quantidade * 20}px"></div>
-    `;
-
-    lista.appendChild(div);
+    ranking.appendChild(div);
   });
 }
 
-carregarDashboard();
+carregar();
 
 </script>
 
