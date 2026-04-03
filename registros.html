@@ -1,61 +1,71 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html>
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Resumo do Dia</title>
 
 <style>
-body {
-    font-family: Arial;
-    background: linear-gradient(#1e3c72, #2a5298);
-    color: white;
-    text-align: center;
+body{
+  font-family: Arial;
+  background: linear-gradient(135deg, #1e3a5f, #2a4d69);
+  color: white;
+  text-align: center;
+  padding: 20px;
 }
 
-.container {
-    background: #fff;
-    color: #000;
-    margin: 50px auto;
-    padding: 20px;
-    border-radius: 10px;
-    width: 90%;
-    max-width: 400px;
+.container{
+  background: white;
+  color: black;
+  padding: 20px;
+  border-radius: 12px;
+  max-width: 400px;
+  margin: auto;
 }
 
-select, button {
-    width: 100%;
-    padding: 10px;
-    margin-top: 10px;
+.total{
+  font-size: 28px;
+  margin-bottom: 15px;
+  font-weight: bold;
 }
 
-.aluno {
-    text-align: left;
-    padding: 10px;
-    border-bottom: 1px solid #ccc;
+.item{
+  text-align: left;
+  padding: 10px;
+  border-bottom: 1px solid #ccc;
 }
 
-.total {
-    font-size: 20px;
-    font-weight: bold;
-    margin-top: 15px;
+.nome{
+  font-weight: bold;
+}
+
+.turma{
+  font-size: 12px;
+  color: gray;
+}
+
+button{
+  width: 100%;
+  padding: 10px;
+  margin-top: 15px;
+  border-radius: 8px;
+  border: none;
+  background: #1f4d2e;
+  color: white;
 }
 </style>
-
 </head>
+
 <body>
 
-<h1>S.C.A.E</h1>
-<p>Resumo do Dia</p>
+<h2>Resumo do Dia</h2>
 
 <div class="container">
 
-<select id="filtroTurma">
-    <option value="todas">Todas as turmas</option>
-</select>
+<div class="total" id="total">0 alunos</div>
 
 <div id="lista"></div>
-
-<div class="total" id="total">Total: 0 alunos</div>
 
 <button onclick="window.history.back()">Voltar</button>
 
@@ -64,13 +74,13 @@ select, button {
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
-import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyD8ibst0QRuzqlfi4fiXZ4kt7h13SV-y24",
   authDomain: "scae-sistema.firebaseapp.com",
   projectId: "scae-sistema",
-  storageBucket: "scae-sistema.firebasestorage.app",
+  storageBucket: "scae-sistema.appspot.com",
   messagingSenderId: "448013604838",
   appId: "1:448013604838:web:524511ee6c17ddfa0fe827"
 };
@@ -79,74 +89,63 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 const lista = document.getElementById("lista");
-const total = document.getElementById("total");
-const filtro = document.getElementById("filtroTurma");
+const totalDiv = document.getElementById("total");
 
-let alunosMap = {};
-let registros = [];
+const escolaId = localStorage.getItem("escola");
 
-onSnapshot(collection(db, "alunos"), (snapshot) => {
-    alunosMap = {};
+const hoje = new Date().toISOString().split("T")[0];
 
-    snapshot.forEach(doc => {
-        const d = doc.data();
-        alunosMap[String(d.codigo)] = {
-            nome: d.nome,
-            turma: d.turma
-        };
+async function carregarResumo(){
+
+  // buscar leituras do dia
+  const q = query(
+    collection(db, "leituras"),
+    where("data", "==", hoje),
+    where("escolaId", "==", escolaId)
+  );
+
+  const snapshot = await getDocs(q);
+
+  let total = 0;
+
+  lista.innerHTML = "";
+
+  for(const docSnap of snapshot.docs){
+
+    const leitura = docSnap.data();
+    const codigo = leitura.codigo;
+
+    // buscar dados do aluno
+    const alunosSnap = await getDocs(
+      query(
+        collection(db, "alunos"),
+        where("codigo", "==", codigo),
+        where("escolaId", "==", escolaId)
+      )
+    );
+
+    alunosSnap.forEach(alunoDoc => {
+
+      const aluno = alunoDoc.data();
+
+      const div = document.createElement("div");
+      div.className = "item";
+
+      div.innerHTML = `
+        <div class="nome">${aluno.codigo} - ${aluno.nome}</div>
+        <div class="turma">${aluno.turma}</div>
+      `;
+
+      lista.appendChild(div);
+
+      total++;
     });
+  }
 
-    renderizar();
-});
-
-onSnapshot(collection(db, "leituras"), (snapshot) => {
-
-    registros = [];
-
-    const hoje = new Date().toISOString().split("T")[0];
-
-    snapshot.forEach(doc => {
-        const d = doc.data();
-
-        if (d.data !== hoje) return;
-
-        registros.push(d);
-    });
-
-    renderizar();
-});
-
-function renderizar() {
-
-    lista.innerHTML = "";
-
-    let contador = 0;
-    const turmaSelecionada = filtro.value;
-
-    registros.forEach(r => {
-
-        const aluno = alunosMap[String(r.codigo)];
-
-        const nome = aluno ? aluno.nome : "Aluno não encontrado";
-        const turma = aluno ? aluno.turma : "Sem turma";
-
-        if (turmaSelecionada !== "todas" && turma !== turmaSelecionada) return;
-
-        contador++;
-
-        lista.innerHTML += `
-            <div class="aluno">
-                <strong>${nome}</strong><br>
-                Código: ${r.codigo}<br>
-                Turma: ${turma}
-            </div>
-        `;
-    });
-
-    total.innerText = "Total: " + contador + " alunos";
+  totalDiv.textContent = total + " alunos";
 }
 
-filtro.addEventListener("change", renderizar);
+carregarResumo();
 
 </script>
 
