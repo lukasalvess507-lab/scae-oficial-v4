@@ -27,10 +27,17 @@ body{
   margin: auto;
 }
 
+label{
+  display: block;
+  text-align: left;
+  margin-top: 10px;
+  font-weight: bold;
+}
+
 input, select{
   width: 100%;
   padding: 8px;
-  margin-bottom: 10px;
+  margin-top: 5px;
   border-radius: 8px;
 }
 
@@ -75,8 +82,10 @@ button{
 
 <div class="container">
 
+<label>📅 Calendário</label>
 <input type="date" id="dataFiltro">
 
+<label>🎓 Turma</label>
 <select id="turmaFiltro">
   <option value="">Todas as turmas</option>
 </select>
@@ -266,6 +275,10 @@ function exportarGrafico(){
   link.download = "grafico.png";
   link.click();
 }
+
+// 🔥 CORREÇÃO DOS BOTÕES (IMPORTANTE)
+window.exportarPDF = exportarPDF;
+window.exportarGrafico = exportarGrafico;
 
 carregar();
 
