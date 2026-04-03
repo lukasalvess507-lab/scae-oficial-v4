@@ -71,13 +71,13 @@ button{
 </div>
 
 <button onclick="iniciarCamera()">Iniciar Câmera</button>
-<button onclick="reiniciarLeitor()">Reiniciar Leitor</button>
 
 <script>
 
 let html5QrCode;
 let bloqueado = false;
 let ultimoCodigo = "";
+let tempoBloqueio = 2000; // 2 segundos
 
 const status = document.getElementById("status");
 const barra = document.getElementById("barra");
@@ -87,49 +87,38 @@ function beep(){
     audio.play();
 }
 
-function mostrarSucesso(msg){
+function mostrar(msg, cor){
     status.innerText = msg;
-    barra.style.background = "green";
+    barra.style.background = cor;
     barra.style.width = "100%";
 }
 
-function mostrarErro(msg){
-    status.innerText = msg;
-    barra.style.background = "red";
-    barra.style.width = "100%";
-}
-
-function liberar(){
+function resetar(){
     setTimeout(()=>{
-        status.innerText = "Aguardando leitura...";
         barra.style.width = "0%";
+        status.innerText = "Aguardando leitura...";
         bloqueado = false;
-    },3000);
+    }, tempoBloqueio);
 }
 
 function processarCodigo(codigo){
 
     if(bloqueado){
-        mostrarErro("Leitura repetida!");
-        return;
-    }
-
-    if(codigo === ultimoCodigo){
-        mostrarErro("QR Code já lido!");
         return;
     }
 
     bloqueado = true;
-    ultimoCodigo = codigo;
 
-    beep();
-    mostrarSucesso("Leitura realizada!");
+    if(codigo === ultimoCodigo){
+        mostrar("QR já lido!", "red");
+    } else {
+        ultimoCodigo = codigo;
+        beep();
+        mostrar("Leitura OK!", "green");
+        console.log("QR:", codigo);
+    }
 
-    // 🔥 AQUI depois você liga com Firebase
-    // exemplo:
-    // salvarLeitura(codigo);
-
-    liberar();
+    resetar();
 }
 
 function iniciarCamera(){
@@ -138,40 +127,28 @@ function iniciarCamera(){
 
     Html5Qrcode.getCameras().then(devices => {
 
-        if(devices && devices.length){
+        if(devices.length){
 
-            const camera = devices.find(d => d.label.toLowerCase().includes("back")) || devices[0];
+            const traseira = devices.find(d => d.label.toLowerCase().includes("back")) || devices[0];
 
             html5QrCode.start(
-                camera.id,
+                traseira.id,
                 { fps: 10, qrbox: 250 },
                 (decodedText) => {
                     processarCodigo(decodedText);
                 }
             );
 
-        }else{
-            alert("Sem câmera");
+            status.innerText = "Câmera iniciada...";
+
+        } else {
+            alert("Nenhuma câmera encontrada");
         }
 
     }).catch(err => {
         alert("Erro ao abrir câmera");
         console.log(err);
     });
-
-}
-
-function reiniciarLeitor(){
-
-    if(html5QrCode){
-        html5QrCode.stop().then(()=>{
-            iniciarCamera();
-        }).catch(()=>{
-            iniciarCamera();
-        });
-    }else{
-        iniciarCamera();
-    }
 
 }
 
