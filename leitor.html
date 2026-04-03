@@ -141,11 +141,14 @@ async function processarCodigo(codigo){
             mostrar("Já registrado hoje!", "red");
         } else {
 
-            await setDoc(ref, {
-                codigo: codigo,
-                data: dataHoje,
-                timestamp: new Date()
-            });
+            const escolaId = localStorage.getItem("escola");
+
+await setDoc(ref, {
+  codigo: codigo,
+  data: dataHoje,
+  timestamp: new Date(),
+  escolaId: escolaId
+});
 
             beep();
             mostrar("Presença registrada!", "green");
