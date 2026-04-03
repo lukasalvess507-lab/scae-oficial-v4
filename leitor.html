@@ -71,10 +71,11 @@ button{
 </div>
 
 <button onclick="iniciarCamera()">Iniciar Câmera</button>
+<button onclick="window.history.back()">Voltar</button>
 
 <script type="module">
 
-// 🔥 FIREBASE (JÁ CONFIGURADO)
+// 🔥 FIREBASE
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
@@ -84,8 +85,7 @@ const firebaseConfig = {
   projectId: "scae-sistema",
   storageBucket: "scae-sistema.firebasestorage.app",
   messagingSenderId: "448013604838",
-  appId: "1:448013604838:web:524511ee6c17ddfa0fe827",
-  measurementId: "G-WM87K81S8K"
+  appId: "1:448013604838:web:524511ee6c17ddfa0fe827"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -95,15 +95,13 @@ const db = getFirestore(app);
 
 let html5QrCode;
 let bloqueado = false;
-let ultimoCodigo = "";
 let tempoBloqueio = 2000;
 
 const status = document.getElementById("status");
 const barra = document.getElementById("barra");
 
 function beep(){
-    const audio = new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg");
-    audio.play();
+    new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg").play();
 }
 
 function mostrar(msg, cor){
@@ -120,30 +118,37 @@ function resetar(){
     }, tempoBloqueio);
 }
 
+function hoje(){
+    const d = new Date();
+    return d.toISOString().split("T")[0]; // YYYY-MM-DD
+}
+
 async function processarCodigo(codigo){
 
-    if(bloqueado){
-        return;
-    }
+    if(bloqueado) return;
 
     bloqueado = true;
 
+    const dataHoje = hoje();
+    const id = codigo + "_" + dataHoje;
+
     try {
 
-        const ref = doc(db, "leituras", codigo);
+        const ref = doc(db, "leituras", id);
         const snap = await getDoc(ref);
 
         if(snap.exists()){
-            mostrar("Já registrado!", "red");
+            mostrar("Já registrado hoje!", "red");
         } else {
 
             await setDoc(ref, {
                 codigo: codigo,
-                data: new Date()
+                data: dataHoje,
+                timestamp: new Date()
             });
 
             beep();
-            mostrar("Registrado com sucesso!", "green");
+            mostrar("Presença registrada!", "green");
         }
 
     } catch(e){
@@ -167,15 +172,13 @@ function iniciarCamera(){
             html5QrCode.start(
                 traseira.id,
                 { fps: 10, qrbox: 250 },
-                (decodedText) => {
-                    processarCodigo(decodedText);
-                }
+                (decodedText) => processarCodigo(decodedText)
             );
 
             status.innerText = "Câmera iniciada...";
 
         } else {
-            alert("Nenhuma câmera encontrada");
+            alert("Sem câmera");
         }
 
     }).catch(err => {
